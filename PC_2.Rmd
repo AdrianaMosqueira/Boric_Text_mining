@@ -1,0 +1,33 @@
+---
+title: "PC2_Mosqueira"
+author: "Adriana Mosqueira"
+date: "2/7/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rtweet)
+library(tidyverse)
+library(twitteR)
+library(ROAuth)
+library(httr)
+library(tm)
+library(SnowballC)
+library(openssl)
+library(httpuv)
+library(base64enc)
+```
+
+```{r}
+create_token(app = "PROJECT 1", consumer_key='OS1a8kuslshTMQtCHoEINXcis', consumer_secret='wgaQ1zjKMULhtINQcQ9PE66grDQuFjCCZYCKed5cxFfHJsuN2R', access_token='571496961-uNXB8P0ZDxnQK46ogQeDBnwaKiKeb1zgmHxt6KUf', access_secret='RJhKP4Mjh9V7tu0lg071JmU1740ZpLs4IpGeVzdoVn1L8')
+```
+
+```{r}
+boric <- get_timeline("@gabrielboric", 1000)
+boric[1,5]
+```
+
