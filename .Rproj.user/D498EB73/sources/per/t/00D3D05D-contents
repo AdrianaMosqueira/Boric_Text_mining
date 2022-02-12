@@ -1,0 +1,180 @@
+---
+title: "PC2_Mosqueira"
+author: "Adriana Mosqueira"
+date: "2/7/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rtweet)
+library(tidyverse)
+library(twitteR)
+library(ROAuth)
+library(httr)
+library(tm)
+library(SnowballC)
+library(openssl)
+library(httpuv)
+library(rio)
+
+```
+
+```{r}
+#create_token(app = "PROJECT 1", consumer_key='OS1a8kuslshTMQtCHoEINXcis', #consumer_secret='wgaQ1zjKMULhtINQcQ9PE66grDQuFjCCZYCKed5cxFfHJsuN2R', #access_token='571496961-uNXB8P0ZDxnQK46ogQeDBnwaKiKeb1zgmHxt6KUf', #access_secret='RJhKP4Mjh9V7tu0lg071JmU1740ZpLs4IpGeVzdoVn1L8')
+```
+
+```{r}
+#boric <- get_timeline("@gabrielboric", 1000)
+#boric[1,5]
+```
+
+```{r}
+boric = import("boric_gabriel.csv")
+```
+
+```{r}
+max(boric$created_at); min(boric$created_at)
+head(boric$text)
+```
+
+```{r}
+textolimpio <- boric$text
+textolimpio[1]
+```
+
+```{r}
+#table(boric$text)
+```
+
+```{r}
+boric$text=gsub("Ã±","ñ",boric$text)
+boric$text=gsub("Ã³","ó",boric$text)
+boric$text=gsub("Ãº","ú",boric$text)
+boric$text=gsub("Ã­","í",boric$text)
+boric$text=gsub("Ã¡","á",boric$text)
+boric$text=gsub("Ã©","é",boric$text)
+boric$text=gsub("Â","",boric$text)
+boric$text=gsub("â€˜","'",boric$text)
+boric$text=gsub("â€™","´",boric$text)
+boric$text=gsub("ðŸ”µâšª","",boric$text)
+boric$text=gsub("ðŸ¶","",boric$text)
+boric$text=gsub("âš ï¸|","",boric$text)
+boric$text=gsub("ðŸ‘€â—ï¸","",boric$text)
+boric$text=gsub("â€œ","'",boric$text)
+boric$text=gsub("ðŸ’œ","",boric$text)
+boric$text=gsub("ðŸ€","",boric$text)
+boric$text=gsub("ðŸ”´","",boric$text)
+boric$text=gsub("âš ï¸|","",boric$text)
+boric$text=gsub("ðŸ˜","",boric$text)
+boric$text=gsub("âš ï¸|","",boric$text)
+boric$text=gsub("â™¥ï¸","",boric$text)
+
+```
+
+```{r}
+library(tm)
+?Corpus
+micorpus <- Corpus(VectorSource(textolimpio))
+length(micorpus)
+content(micorpus[1])
+```
+
+```{r}
+# Convertir a minusculas
+content(micorpus[1])
+micorpus <- tm_map(micorpus,content_transformer(tolower)) 
+content(micorpus[1])
+```
+
+```{r}
+#remueve URLs
+content(micorpus[1])
+removerURL <- function(x) gsub("http[^[:space:]]*", "", x)
+micorpus <- tm_map(micorpus, content_transformer(removerURL))
+content(micorpus[1])
+```
+
+```{r}
+#eliminar tildes
+content(micorpus[1])
+removerTILDE <- function(x) chartr('áéíóú','aeiou',x)
+micorpus <- tm_map(micorpus, removerTILDE)
+content(micorpus[1])
+
+```
+
+```{r}
+#eliminar ?s
+content(micorpus[1])
+remover <- function(x) chartr('?','n',x)
+micorpus <- tm_map(micorpus, remover)
+content(micorpus[1])
+```
+
+```{r}
+#remover @otros usuarios
+content(micorpus[1])
+removerUSUARIOS <- function(x) gsub("@\\w+", "", x)
+micorpus <- tm_map(micorpus, removerUSUARIOS)
+content(micorpus[1])
+```
+
+```{r}
+# Quitar la puntuación
+content(micorpus[1])
+micorpus <- tm_map(micorpus, removePunctuation)
+content(micorpus[1])
+```
+
+```{r}
+#quitar números
+content(micorpus[23])
+micorpus <- tm_map(micorpus, removeNumbers)
+content(micorpus[23])
+```
+
+```{r}
+# Ya hay una lista predeterminada. Hay una lista por cada idioma. 
+stopwords("spanish")[1:20]
+stopwords("english")[1:20]
+```
+
+```{r}
+content(micorpus[1])
+micorpus <- tm_map(micorpus, removeWords,c(stopwords("spanish")))
+content(micorpus[1])
+```
+
+```{r}
+#Eliminar espacios en blanco, varios espacios en blanco se contraen en uno solo
+content(micorpus[1])
+micorpus <- tm_map(micorpus, stripWhitespace)
+content(micorpus[1])
+```
+
+```{r}
+?TermDocumentMatrix
+term <- TermDocumentMatrix(micorpus)
+term
+
+inspect(term)
+```
+
+```{r}
+findFreqTerms(term,lowfreq = 20)
+```
+
+
+
+
+
+
+
+
+
+
+

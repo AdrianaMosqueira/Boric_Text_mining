@@ -1,0 +1,28 @@
+{
+    "id": "58220036",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1644645879685.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "id": "4f308f80c10e4660a0c604c5b70f8581",
+        "name": "micorpus",
+        "title": "micorpus",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 2700547173608,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1644645879685,
+    "read_only": false,
+    "read_only_alternatives": []
+}

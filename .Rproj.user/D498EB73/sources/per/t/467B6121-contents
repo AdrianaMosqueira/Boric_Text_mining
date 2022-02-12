@@ -1,0 +1,273 @@
+---
+title: "PC1-Individual"
+author: "Adriana Mosqueira"
+date: "18/1/2022"
+output: rmdformats::material
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rio)
+library(lubridate)
+library(tidyverse)
+library(gapminder)
+library(ggplot2)
+```
+
+
+## PREGUNTA 1:
+
+### a) Abra la data y describa brevemente (tipo de variables, número de casos, etc.)
+
+```{r}
+Link1= "https://raw.githubusercontent.com/ChristianChiroqueR/Diplomado-2021---R-Intermedio/main/Sesion%205%20-%20PCA%20y%20EFA/vacunados_apurimac.csv"
+```
+
+```{r}
+Vacuna_Apurimac = import(Link1)
+str(Vacuna_Apurimac)
+```
+
+```{r}
+Vacuna_Apurimac$GRUPO_RIESGO= gsub("Ã‘", "Ñ", Vacuna_Apurimac$GRUPO_RIESGO)
+Vacuna_Apurimac$GRUPO_RIESGO= gsub("MÃS","MAS", Vacuna_Apurimac$GRUPO_RIESGO)
+Vacuna_Apurimac$GRUPO_RIESGO= gsub("Ã“","O", Vacuna_Apurimac$GRUPO_RIESGO)
+Vacuna_Apurimac$GRUPO_RIESGO= gsub("Ã‰","E", Vacuna_Apurimac$GRUPO_RIESGO)
+Vacuna_Apurimac$GRUPO_RIESGO= gsub("Ã\u008d","I", Vacuna_Apurimac$GRUPO_RIESGO)
+Vacuna_Apurimac$GRUPO_RIESGO= gsub("Ã\u0081","A", Vacuna_Apurimac$GRUPO_RIESGO)
+
+```
+
+#### Se evidencian 12 variables y 679 699 observaciones. De todas las variables se cuenta con 7 variables de tipo caracter y 5 de tipo numéricas. En cuanto a las variables, las más resaltantes son: “Grupo de Riesgo”, la cual permite clasificar a la población en 41 grupos de riesgo, diferenciando entre adultos mayores, personal de salud, personal del INPE, bomberos, personas con enfermedades comórbidas, además de grupos de edad, entre otros. Otra variables de interés, como “sexo”, “diresa”, “departamento”, “provincia”, “fabricante” y “distrito”, las cuales son de tipo caracter, y que nos permiten hacer análisis desagregado sobre como se está desarrollando la vacunación a nivel de cada una de estas variables e incluso identifcar que grupos se están vacunando más. Otra variable de interés es “dosis”, la cual nos permite evidenciar por diferentes grupos la cantidad de personas que ya han recibido la primera dosis, la segunda y la tercera. 
+
+### b) Creación de variable Fecha
+
+```{r}
+Vacuna_Apurimac$FECHA_VACUNACION=as.character(Vacuna_Apurimac$FECHA_VACUNACION)
+Vacuna_Apurimac$Fecha=as.Date(Vacuna_Apurimac$FECHA_VACUNACION,'%Y%m%d')
+```
+
+### c) Crear nueva data que agregue los datos según fecha para determinar el total de vacunados por día
+
+```{r}
+Vacunados=Vacuna_Apurimac |> 
+  group_by(Fecha) |> 
+  summarise(Vacunados_fechas = n())
+Vacunados
+```
+
+```{r}
+summary(Vacunados$Vacunados_fechas)
+```
+
+#### La mayor cantidad de vacunados en el departamento de Apurímac, se registro para el día 28 de agosto del 2021
+
+### d.a) Gráficos: Línea de evolución diaria de total de vacunados
+
+```{r}
+Vacunados$cum_vacunados <- cumsum(Vacunados$Vacunados_fechas)
+```
+
+```{r}
+Vacunados |> 
+  ggplot(aes(x=Fecha, y= cum_vacunados/1000)) +
+  geom_line(colour= "black", size = 0.5) +
+  labs(x = 'Fecha de vacunación',
+       y = 'Cantidad de vacunados') +
+  geom_point(colour= "blue", size=0.1)
+```
+
+### d.b) Gráficos: Pie/barras según el FABRICANTE del total de vacunados
+
+```{r}
+Vacuna_Apurimac |>  
+  group_by(FABRICANTE) |>  
+  summarise(conteo = n()) |>  
+  mutate(prop = conteo / sum(conteo)*100) |> 
+  mutate(ypos=cumsum(prop)-0.5*prop) |> 
+  ggplot() +
+  aes(x = " ", y = prop, fill = FABRICANTE) +
+  geom_bar(stat = "identity",width = 1,color="white") +
+  labs(title = "Cantidad de vacunas colocadas por laboratorio fabricante") +
+  coord_polar("y", start=0)+
+  theme_void() +
+  geom_text(aes(label= paste(round(prop, digits = 1), '%')),
+              position=position_stack(vjust=0.5)) +
+  scale_fill_manual(values = alpha(c("lavender", "powderblue", "steelblue"), 1))
+```
+
+### e) En base a variable GRUPO_RIESGO y usando paquete stringr:
+### a. Crear nueva variable dicotnómica que indique si la persona es Adulto Mayor
+
+```{r}
+table(Vacuna_Apurimac$GRUPO_RIESGO)
+```
+
+```{r}
+Vacuna_Apurimac$Adulto_mayor <- ifelse(Vacuna_Apurimac$GRUPO_RIESGO == '60 AÑOS A MAS, ADULTO MAYOR', 1, 0)
+```
+
+```{r}
+table(Vacuna_Apurimac$Adulto_mayor)
+```
+
+### b. Crear nueva variable dicotnómica que indique si la persona vacunada pertenecía al Personal de Salud 
+
+```{r}
+Vacuna_Apurimac$Personal_salud <- ifelse(Vacuna_Apurimac$GRUPO_RIESGO == 'PERSONAL DE SALUD', 1, 0)
+```
+
+```{r}
+table(Vacuna_Apurimac$Personal_salud)
+```
+
+```{r}
+Personal_salud <- Vacuna_Apurimac |> 
+  filter(Personal_salud == 1)
+```
+
+```{r}
+Personal_salud |>
+  group_by(PROVINCIA) |>
+  summarise(Personal_salud = n())
+```
+
+#### Se puede evidenciar que la mayor cantidad de personal de salud vacunado(a) en el departamento de Apurímac, se encuentra en la provincia de Andahuaylas, con un total de 7307 personas de este grupo de riesgo, vacunados(as).
+
+### f) ¿Cuáles son los tres distritos que tienen una mayor población vacunada con la 3ra dosis?
+
+```{r}
+table(Vacuna_Apurimac$DOSIS)
+```
+
+
+```{r}
+Distritos_vacuna <- Vacuna_Apurimac |> 
+  filter(DOSIS == 3)
+```
+
+```{r}
+Distritos_vacuna |>
+  group_by(DISTRITO) |>
+  summarise(DOSIS = n())
+```
+
+#### Los tres distritos, del departamento de Apurímac, con mayor cantidad de población vacuna con la tercera dosis son: (1) Abancay, con 11 805 terceras dosis aplicadas, (2) Andahuaylas, con 5833 terceras dosis aplicadas y (3) Anco-Huallo, con 961 terceras dosis aplicadas.
+
+
+## PREGUNTA 2:
+
+### a) Prepare la data para poder procesar un análisis de componentes principales. Realice un breve análisis exploratorio 
+
+```{r}
+IDE = import("IDE.sav")
+```
+
+```{r}
+str(IDE)
+```
+
+```{r}
+library(psych)
+library(tidyverse)
+```
+
+```{r}
+IDE
+Data1 <- IDE |> 
+  select(salud, educacion, saneamiento, electrificacion)
+```
+
+```{r}
+IDE |> ggplot(aes(x=saneamiento, y=salud)) + geom_point()
+IDE |> ggplot(aes(x=educacion, y=salud)) + geom_point()
+IDE |> ggplot(aes(x=educacion, y=saneamiento)) + geom_point()
+IDE |> ggplot(aes(x=electrificacion, y=educacion)) + geom_point()
+```
+
+#### Se puede visualizar en los gráficos, una relación positiva entre las varibles analizadas: salud, educación, sanemiento y electrificación. 
+
+### b) Calcule la matriz de correlaciones y realice el análisis respectivo de los supuestos para realizar un PCA.
+
+#### SUPUESTO 1: Uno de los principales supuesto para aplicar un PCA, se requiere que los atributos tengan algún nivel de correlación. Para ello se realiza un test de correlación.
+
+```{r}
+corr.test(Data1)
+```
+
+```{r}
+#matrixcor <- cor(Data1)
+#cor.plot(matrixcor)
+```
+#### Para este caso, se encuentra que existe correlación entre todos los atributos
+
+#### SUPUESTO 2: La prueba KMO debe ser lo más cercano a 1
+
+```{r}
+psych::KMO(Data1) 
+```
+
+#### Para este caso resulta resulta igual a 0.72, es decir mayor a 0.5 y cercano a 1.
+
+#### SUPUESTO 3: La matriz de correlaciones no debe ser una matriz de identidad, para ello se usa la prueba de esfericidad de Barlett
+
+```{r}
+#cortest.bartlett(matrixcor, n=dim(Data1)[1])
+```
+
+#### Mediante este test, se verifica, que la matriz, no es una matriz identidad, es decir, que si bien la diagonal es igual a 1, los extremos de la matriz son diferentes a 0, lo cual implica que si existe correlación entre las variables. 
+
+### c) Determine el número de componentes a considerar según el gráfico Screeplot. Calcule el PCA.
+
+#### Gráfico de Screeplot
+
+```{r}
+scree(Data1, pc =  TRUE, factors = FALSE)
+```
+#### Ploteamos los egentvalues, que van de mayor a menor. Se contará con 4 componentes, porque se cuentan con 4 variables. El codo se encuentra por debajo de 1, entonces con una componente bastaría. Solo tomar en cuenta los engenvalues mayores a 1 o los que se encuentren en el codo.
+
+```{r}
+fa.parallel(Data1, fa = "pc")
+```
+
+#### En la consola nos indica que el número de componentes debe ser 1 "Components = 1"
+
+### d) Analice el PCA calculado (loadings, varianza explicada, simple y acumulada). Presente dos gráficos que aporte al análisis.
+
+```{r}
+PC1 <- prcomp(x = Data1, scale = TRUE, center = TRUE)
+names(PC1)
+summary(PC1)
+```
+
+```{r}
+PC1$rotation
+```
+
+#### El número de componentes principles es igual al número de variables ingresadas. Para este caso, vemos que el componente 1 (PC1) está relacionado de forma inversa a los cuatro indicadores.
+
+```{r}
+library(factoextra)
+fviz_eig(PC1)
+fviz_pca_var(PC1)
+```
+
+### e) Guarde los dos primeros PC en la base de datos original.
+
+```{r}
+PC1$x
+```
+
+```{r}
+IDE <- Data1 |> 
+  mutate(PC1=PC1$x[,1]) 
+```
+
+```{r}
+library(rmdformats)
+```
+
+

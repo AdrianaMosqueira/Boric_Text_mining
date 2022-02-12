@@ -1,0 +1,12 @@
+"0","?TermDocumentMatrix"
+"0","term <- TermDocumentMatrix(micorpus)"
+"0","term"
+"1","<<TermDocumentMatrix (terms: 4980, documents: 999)>>
+"
+"1","Non-/sparse entries: 13738/4961282
+"
+"1","Sparsity           : 100%
+"
+"2","Error in nchar(Terms(x), type = ""chars"") : 
+  invalid multibyte string, element 4626
+"
