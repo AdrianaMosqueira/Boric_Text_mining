@@ -1,0 +1,2 @@
+"0","termcount <- data.frame(freq = apply(term,1,sum))"
+"0","head(termcount)"

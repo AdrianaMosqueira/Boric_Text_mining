@@ -1,0 +1,2 @@
+"0","dm <- data.frame(word = names(wf), freq=wf)"
+"0","head(dm)"

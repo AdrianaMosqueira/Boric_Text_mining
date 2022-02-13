@@ -1,0 +1,5 @@
+"0","tdm2 <- removeSparseTerms(term, sparse = 0.95)"
+"0","m2 <- as.matrix(tdm2)"
+"0","distMatrix <- dist(scale(m2))"
+"0","fit <- hclust(distMatrix, method = ""ward.D"")"
+"0","plot(fit)"

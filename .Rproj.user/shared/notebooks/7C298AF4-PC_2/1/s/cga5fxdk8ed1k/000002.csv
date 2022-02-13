@@ -1,0 +1,39 @@
+"0","install.packages(""SentimentAnalysis"")"
+"2","WARNING: Rtools is required to build R packages but is not currently installed. Please download and install the appropriate version of Rtools before proceeding:
+
+https://cran.rstudio.com/bin/windows/Rtools/
+"
+"2","Installing package into ‘C:/Users/limon/Documents/R/win-library/4.1’
+(as ‘lib’ is unspecified)
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.1/SentimentAnalysis_1.3-4.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 268542 bytes (262 KB)
+"
+"2","downloaded 262 KB
+
+"
+"1","package ‘SentimentAnalysis’ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\limon\AppData\Local\Temp\RtmpGcv8EM\downloaded_packages"
+"1",""
+"1","
+"
+"0","library(SentimentAnalysis)"
+"2","Warning:"
+"2"," package ‘SentimentAnalysis’ was built under R version 4.1.2
+"
+"2","
+Attaching package: ‘SentimentAnalysis’
+
+"
+"2","The following object is masked from ‘package:base’:
+
+    write
+
+"

@@ -1,0 +1,5 @@
+"0","sentimientos <- analyzeSentiment(textolimpio,language = ""spanish"")"
+"0",""
+"0","sentimientos_final <- data.frame(textolimpio,"
+"0","                                 sentiment = convertToDirection(sentimientos$SentimentGI))"
+"0","head(sentimientos_final)"

@@ -2,7 +2,15 @@
 title: "PC2_Mosqueira"
 author: "Adriana Mosqueira"
 date: "2/7/2022"
-output: html_document
+output:
+  rmdformats::material:
+  code_folding: show
+  self_contained: true
+  thumbnails: false
+  lightbox: false
+pkgdown:
+  as_is: yes
+
 ---
 
 ```{r setup, include=FALSE}
@@ -37,16 +45,6 @@ boric = import("boric_gabriel.csv")
 ```
 
 ```{r}
-max(boric$created_at); min(boric$created_at)
-head(boric$text)
-```
-
-```{r}
-textolimpio <- boric$text
-textolimpio[1]
-```
-
-```{r}
 #table(boric$text)
 ```
 
@@ -72,12 +70,20 @@ boric$text=gsub("âš ï¸|","",boric$text)
 boric$text=gsub("ðŸ˜","",boric$text)
 boric$text=gsub("âš ï¸|","",boric$text)
 boric$text=gsub("â™¥ï¸","",boric$text)
+```
 
+```{r}
+max(boric$created_at); min(boric$created_at)
+head(boric$text)
+```
+
+```{r}
+textolimpio <- boric$text
+textolimpio[1]
 ```
 
 ```{r}
 library(tm)
-?Corpus
 micorpus <- Corpus(VectorSource(textolimpio))
 length(micorpus)
 content(micorpus[1])
@@ -104,7 +110,6 @@ content(micorpus[1])
 removerTILDE <- function(x) chartr('áéíóú','aeiou',x)
 micorpus <- tm_map(micorpus, removerTILDE)
 content(micorpus[1])
-
 ```
 
 ```{r}
@@ -157,20 +162,146 @@ content(micorpus[1])
 ```
 
 ```{r}
-?TermDocumentMatrix
-term <- TermDocumentMatrix(micorpus)
-term
+removerRETWEETS <- function(x) gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", x)
+micorpus <- tm_map(micorpus, removerRETWEETS)
+content(micorpus[1])
+```
 
-inspect(term)
+```{r}
+limpiar_texto<- function(x){
+  x<-str_to_lower(x)
+  x<- str_replace_all(x, "http[^[:space:]]*", "") # Direcciones
+  x<- str_replace_all(x, "á", "a") # Tildes
+  x<- str_replace_all(x, "é", "e") # Tildes
+  x<- str_replace_all(x, "í", "i") # Tildes
+  x<- str_replace_all(x, "ó", "o") # Tildes
+  x<- str_replace_all(x, "ú", "u") # Tildes
+  x<- str_replace_all(x, "\\?","") # Signo de interrogación
+  x<- str_replace_all(x, "(?<=\\s)\\@[:alpha:]{1,15}","") # Usuarios de twitter
+  x<- str_replace_all(x, "\\_|\\)|\\(|\\/|\\.|\\,|\\;","") # Signos de puntuación
+  x<- str_replace_all(x, "\\d","")
+  x<- Corpus(VectorSource(x))
+ x<- tm_map(x, removeWords,c(stopwords("spanish")))
+}
+textolimpio2<-limpiar_texto(textolimpio)
+content(textolimpio2[1:10])
+textolimpio2 <- tm_map(textolimpio2, stripWhitespace)
+content(textolimpio2[1:10])
+```
+
+```{r}
+term <- TermDocumentMatrix(micorpus)
 ```
 
 ```{r}
 findFreqTerms(term,lowfreq = 20)
 ```
 
+```{r}
+##Top Frequent Terms#
 
+# Convierte a una matriz
+m <- as.matrix(term)
+head(m)
+```
 
+```{r}
+# Conteo de palabras en orden decreciente
+wf <- sort(rowSums(m),decreasing=TRUE)
+wf
+head(wf)
+```
 
+```{r}
+dm <- data.frame(word = names(wf), freq=wf)
+head(dm)
+```
+
+```{r}
+dm1 <- dm
+hist(dm1$freq)
+dm1 <- subset(dm1, dm1$freq >= 10)
+dm1
+```
+
+#Barras, sobre las 20 palabras más usadas
+
+```{r}
+ggplot(dm1, aes( x= word, y=freq )) + geom_bar(stat="identity") +
+  xlab("Terminos") + ylab("Frecuencia") + coord_flip() +
+  theme(axis.text=element_text(size=7))
+
+barplot(dm1[1:20,]$freq, las = 2, names.arg = dm1[1:20,]$word,
+        col ="paleturquoise2", main ="Top 5 palabras más frecuentes",
+        ylab = "Palabras más frecuentes")
+```
+
+# Wordcloud
+
+```{r}
+library(wordcloud)
+head(dm)
+termcount <- data.frame(freq = apply(term,1,sum))
+head(termcount)
+
+wordcloud(dm$word, dm$freq, random.order=FALSE, min.freq=2, colors=brewer.pal(8, "Dark2"))
+```
+# Modelamiento
+## Palabras asociadas a las palabras más utilizadas
+
+```{r}
+findAssocs(term, c("derechos"), c(0.30))
+```
+```{r}
+findAssocs(term, c("chile"), c(0.30))
+```
+
+```{r}
+findAssocs(term, c("mujer"), c(0.30))
+```
+
+```{r}
+findAssocs(term, c("salud"), c(0.30))
+```
+
+```{r}
+findAssocs(term, c("confianza"), c(0.30))
+```
+
+## Eliminar palabras menos frecuentes
+
+```{r}
+tdm2 <- removeSparseTerms(term, sparse = 0.95)
+m2 <- as.matrix(tdm2)
+distMatrix <- dist(scale(m2))
+fit <- hclust(distMatrix, method = "ward.D")
+plot(fit)
+rect.hclust(fit, k = 3)
+```
+
+# Análisis de sentimientos
+
+```{r}
+#install.packages("SentimentAnalysis")
+library(SentimentAnalysis)
+```
+
+```{r}
+sentimientos <- analyzeSentiment(textolimpio,language = "spanish")
+
+sentimientos_final <- data.frame(textolimpio,
+                                 sentiment = convertToDirection(sentimientos$SentimentGI))
+head(sentimientos_final)
+str(sentimientos_final)
+table(sentimientos_final$sentiment)
+
+sentimientos_final$score <- 0
+sentimientos_final$score[sentimientos_final$sentiment == "positive"] <- 1
+sentimientos_final$score[sentimientos_final$sentiment == "negative"] <- -1
+
+head(sentimientos_final)
+table(sentimientos_final$score)
+```
 
 
 

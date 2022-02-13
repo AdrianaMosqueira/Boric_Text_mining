@@ -1,0 +1,7 @@
+"0","library(wordcloud)"
+"2","Warning:"
+"2"," package ‘wordcloud’ was built under R version 4.1.2
+"
+"2","Loading required package: RColorBrewer
+"
+"0","head(dm)"

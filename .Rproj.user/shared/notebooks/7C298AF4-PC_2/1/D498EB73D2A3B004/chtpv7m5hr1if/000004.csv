@@ -1,0 +1,2 @@
+"0","dm1 <- subset(dm1, dm1$freq >= 10)"
+"0","dm1"

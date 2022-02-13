@@ -1,0 +1,12 @@
+"0","removerRETWEETS <- function(x) gsub(""(RT|via)((?:\\b\\W*@\\w+)+)"", """", x)"
+"0","micorpus <- tm_map(micorpus, removerRETWEETS)"
+"2","Warning in tm_map.SimpleCorpus(micorpus, removerRETWEETS) :"
+"2","
+ "
+"2"," transformation drops documents
+"
+"0","content(micorpus[1])"
+"1","[1]"
+"1"," "" cae mitos campaña anticonstituyente derecho propiedad comision derechos funds aprobo reconocimiento proteccion constitucional podia ser manera constituyente avanza buena forma pesar estridencia rodea """
+"1","
+"
