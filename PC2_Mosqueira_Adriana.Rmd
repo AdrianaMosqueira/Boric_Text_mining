@@ -1,0 +1,329 @@
+---
+title: "PC2: Ejercicio de Text Mining"
+author: "Adriana Mosqueira"
+date: "2/7/2022"
+output:
+  rmdformats::material:
+  code_folding: show
+  self_contained: true
+  thumbnails: false
+  lightbox: false
+pkgdown:
+  as_is: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **Usuario: @GabrielBoric, presidente electo de Chile**
+
+```{r, include=FALSE}
+library(rtweet)
+library(tidyverse)
+library(twitteR)
+library(ROAuth)
+library(httr)
+library(tm)
+library(SnowballC)
+library(openssl)
+library(httpuv)
+library(rio)
+```
+
+```{r, include=FALSE}
+#create_token(app = "PROJECT 1", consumer_key='OS1a8kuslshTMQtCHoEINXcis', #consumer_secret='wgaQ1zjKMULhtINQcQ9PE66grDQuFjCCZYCKed5cxFfHJsuN2R', #access_token='571496961-uNXB8P0ZDxnQK46ogQeDBnwaKiKeb1zgmHxt6KUf', #access_secret='RJhKP4Mjh9V7tu0lg071JmU1740ZpLs4IpGeVzdoVn1L8')
+```
+
+```{r, include=FALSE}
+#boric <- get_timeline("@gabrielboric", 1000)
+#boric[1,5]
+```
+
+# **Obtención de la base de datos**
+
+## 1. Base de datos:
+
+```{r}
+boric = import("boric_gabriel.csv")
+```
+
+```{r, include=FALSE}
+boric$text=gsub("Ã±","ñ",boric$text)
+boric$text=gsub("Ã³","ó",boric$text)
+boric$text=gsub("Ãº","ú",boric$text)
+boric$text=gsub("Ã­","í",boric$text)
+boric$text=gsub("Ã¡","á",boric$text)
+boric$text=gsub("Ã©","é",boric$text)
+boric$text=gsub("Â","",boric$text)
+boric$text=gsub("â€˜","'",boric$text)
+boric$text=gsub("â€™","´",boric$text)
+boric$text=gsub("ðŸ”µâšª","",boric$text)
+boric$text=gsub("ðŸ¶","",boric$text)
+boric$text=gsub("âš ï¸|","",boric$text)
+boric$text=gsub("ðŸ‘€â—ï¸","",boric$text)
+boric$text=gsub("â€œ","'",boric$text)
+boric$text=gsub("ðŸ’œ","",boric$text)
+boric$text=gsub("ðŸ€","",boric$text)
+boric$text=gsub("ðŸ”´","",boric$text)
+boric$text=gsub("âš ï¸|","",boric$text)
+boric$text=gsub("ðŸ˜","",boric$text)
+boric$text=gsub("âš ï¸|","",boric$text)
+boric$text=gsub("â™¥ï¸","",boric$text)
+```
+
+## 2. Información relevante:
+
+#### Se obtuvo el periodo de tiempo al cual corresponden los tweets extraídos, los cuales van desde el 28 de noviembre del 2021 hasta el 11 de febrero del 2022
+```{r}
+max(boric$created_at); min(boric$created_at)
+head(boric$text)
+```
+
+# **Procesamiento y análisis exploratorio**
+
+## 1. Procesamiento de la base de datos
+ 
+```{r}
+textolimpio <- boric$text
+textolimpio[1]
+```
+
+```{r}
+library(tm)
+micorpus <- Corpus(VectorSource(textolimpio))
+length(micorpus)
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+micorpus <- tm_map(micorpus,content_transformer(tolower)) 
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+removerURL <- function(x) gsub("http[^[:space:]]*", "", x)
+micorpus <- tm_map(micorpus, content_transformer(removerURL))
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+removerTILDE <- function(x) chartr('áéíóú','aeiou',x)
+micorpus <- tm_map(micorpus, removerTILDE)
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+remover <- function(x) chartr('?','n',x)
+micorpus <- tm_map(micorpus, remover)
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+removerUSUARIOS <- function(x) gsub("@\\w+", "", x)
+micorpus <- tm_map(micorpus, removerUSUARIOS)
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+micorpus <- tm_map(micorpus, removePunctuation)
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[23])
+micorpus <- tm_map(micorpus, removeNumbers)
+content(micorpus[23])
+```
+
+```{r, include=FALSE}
+stopwords("spanish")[1:20]
+stopwords("english")[1:20]
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+micorpus <- tm_map(micorpus, removeWords,c(stopwords("spanish")))
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+content(micorpus[1])
+micorpus <- tm_map(micorpus, stripWhitespace)
+content(micorpus[1])
+```
+
+```{r, warning=FALSE}
+removerRETWEETS <- function(x) gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", x)
+micorpus <- tm_map(micorpus, removerRETWEETS)
+content(micorpus[1])
+```
+
+```{r, include=FALSE}
+limpiar_texto<- function(x){
+  x<-str_to_lower(x)
+  x<- str_replace_all(x, "http[^[:space:]]*", "") # Direcciones
+  x<- str_replace_all(x, "á", "a") # Tildes
+  x<- str_replace_all(x, "é", "e") # Tildes
+  x<- str_replace_all(x, "í", "i") # Tildes
+  x<- str_replace_all(x, "ó", "o") # Tildes
+  x<- str_replace_all(x, "ú", "u") # Tildes
+  x<- str_replace_all(x, "\\?","") # Signo de interrogación
+  x<- str_replace_all(x, "(?<=\\s)\\@[:alpha:]{1,15}","") # Usuarios de twitter
+  x<- str_replace_all(x, "\\_|\\)|\\(|\\/|\\.|\\,|\\;","") # Signos de puntuación
+  x<- str_replace_all(x, "\\d","")
+  x<- Corpus(VectorSource(x))
+ x<- tm_map(x, removeWords,c(stopwords("spanish")))
+}
+textolimpio2<-limpiar_texto(textolimpio)
+content(textolimpio2[1:10])
+textolimpio2 <- tm_map(textolimpio2, stripWhitespace)
+content(textolimpio2[1:10])
+```
+
+## 2. Term document matrix
+
+```{r}
+term <- TermDocumentMatrix(micorpus)
+```
+
+```{r}
+findFreqTerms(term,lowfreq = 20)
+```
+
+```{r}
+m <- as.matrix(term)
+head(m)
+```
+
+#### Procederemos a identificar la cantidad de veces que cada una de las palabras ha sido utilizada
+ 
+```{r}
+wf <- sort(rowSums(m),decreasing=TRUE)
+wf
+head(wf)
+```
+
+```{r}
+dm <- data.frame(word = names(wf), freq=wf)
+head(dm)
+```
+
+```{r}
+dm1 <- dm
+hist(dm1$freq)
+dm1 <- subset(dm1, dm1$freq >= 10)
+dm1
+```
+
+## 3. Diagrama de barras: Top 20 de las palabras más usadas
+
+#### A continuación se muestra gráficamente las 20 palabras más utilizadas dentro de los tweets realizados.
+
+```{r}
+ggplot(dm1, aes( x= word, y=freq )) + geom_bar(stat="identity") +
+  xlab("Terminos") + ylab("Frecuencia") + coord_flip() +
+  theme(axis.text=element_text(size=7)) + geom_text(aes(hjust = 1.3, label = freq))
+
+barplot(dm1[1:20,]$freq, las = 2, names.arg = dm1[1:20,]$word,
+        col ="paleturquoise2", main ="Top 20 palabras más frecuentes",
+        ylab = "Palabras más frecuentes")
+
+dm1[1:20, ] %>%
+  ggplot(aes(word, freq)) +
+  geom_bar(stat = "identity", color = "black", fill = "paleturquoise2") +
+  geom_text(aes(hjust = 1.3, label = freq)) + 
+  coord_flip() + 
+  labs(title = "Top 20 palabras más frecuentes",  x = "Palabras más frecuentes", y = "Número de veces mencionadas")
+```
+
+## 4. Word Cloud
+
+#### También se realiza un word cloud con el Top 100 de palabras más utilizadas durante este period de tiempo, por este usuario
+
+```{r}
+library(wordcloud)
+head(dm)
+termcount <- data.frame(freq = apply(term,1,sum))
+head(termcount)
+
+wordcloud(dm$word, dm$freq, max.words = 100, random.order=FALSE, min.freq=2, colors=brewer.pal(8, "Dark2"))
+```
+
+# **Modelamiento**
+
+## 1. Palabras asociadas 
+
+#### A partir de la nube de palabras y el gráfico de barras, se identificaron algunas palabras que podrían estar asociadas con otras en un 0.3 a más.
+
+```{r}
+findAssocs(term, c("salud", "educacion", "agua"), c(0.50))
+```
+```{r}
+findAssocs(term, c("esperanza", "mujer", "confianza", "vulnerables"), c(0.30))
+```
+
+```{r}
+findAssocs(term, c("estudiantes", "derechos", "personas", "trabajadores"), c(0.30))
+```
+
+## 2. Clúster de palabras
+
+#### Para ello, será necesario eliminar aquellas palabras menos frecuentes, o más dispersas
+
+```{r}
+term_new <- removeSparseTerms(term, sparse = 0.96)
+m2 <- as.matrix(term_new)
+term_new$nrow
+term$nrow
+```
+
+#### Con las 23 palabras menos dispersas, filtradas en el paso anterior, se solicita contruir 3 clúster y que estas seas mostradas en un dendograma
+
+```{r}
+distMatrix <- dist(scale(m2))
+fit <- hclust(distMatrix, method = "ward.D")
+plot(fit, main = "Dendograma para @gabrielboric")
+rect.hclust(fit, k = 3)
+```
+
+## 3. Análisis de sentimientos
+
+#### Finalmente se realiza un análisis de sentimientos, a partir del cual se identican 3 grupos: sentimientos neutrales, sentimientos positivos y sentimientos negativos
+
+```{r, warning=FALSE}
+#install.packages("SentimentAnalysis")
+library(SentimentAnalysis)
+```
+
+#### Se identifica que la mayoría de palabras muestran sentimientos neutrales, mientras que 137 aluden a sentimientos positivos y las 46 restantes implican sentimientos negativos
+
+```{r}
+sentimientos <- analyzeSentiment(textolimpio,language = "spanish")
+
+sentimientos_final <- data.frame(textolimpio,
+                                 sentiment = convertToDirection(sentimientos$SentimentGI))
+head(sentimientos_final)
+str(sentimientos_final)
+table(sentimientos_final$sentiment)
+
+sentimientos_final$score <- 0
+sentimientos_final$score[sentimientos_final$sentiment == "positive"] <- 1
+sentimientos_final$score[sentimientos_final$sentiment == "negative"] <- -1
+
+head(sentimientos_final)
+table(sentimientos_final$score)
+```
+
+
+
+
+
+
+

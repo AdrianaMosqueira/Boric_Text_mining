@@ -236,7 +236,7 @@ ggplot(dm1, aes( x= word, y=freq )) + geom_bar(stat="identity") +
   theme(axis.text=element_text(size=7))
 
 barplot(dm1[1:20,]$freq, las = 2, names.arg = dm1[1:20,]$word,
-        col ="lightgreen", main ="Top 5 palabras más frecuentes",
+        col ="lightgreen", main ="Top 20 palabras más frecuentes",
         ylab = "Palabras más frecuentes")
 
 ## WORDCLOUD
