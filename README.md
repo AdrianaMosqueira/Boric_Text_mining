@@ -1,0 +1,2 @@
+# DDS_Boric_Text_mining
+For the present work, it has been proposed to analyze the interactions through tweets that the current president of Chile, Gabriel Boric, has had during the second round campaign in the 2021 elections. The main objective is to be able to see what have been the most used words during this last stage of the electoral process, in addition to the feelings that can be identified through his "tweets". 
